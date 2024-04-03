@@ -3,6 +3,7 @@ import random
 import math
 import time
 from src.cell import Cell
+from queue import PriorityQueue
 from src.algorithm import depth_first_recursive_backtracker, binary_tree
 
 
@@ -134,6 +135,7 @@ class Maze(object):
 
 
         """
+        neigh_list = []
         if method == "fancy":
             neigh_list = list()
             min_dist_to_target = 100000
@@ -188,6 +190,77 @@ class Maze(object):
                 rng_entry_exit = (random.randint(0, self.num_rows-1), 0)
 
         return rng_entry_exit       # Return entry/exit that is different from exit/entry
+
+    def uniform_cost_search(self, start_coor, end_coor):
+        frontier = PriorityQueue()
+        frontier.put((0, start_coor))
+        came_from = {}
+        cost_so_far = {}
+        came_from[start_coor] = None
+        cost_so_far[start_coor] = 0
+
+        while not frontier.empty():
+            current_cost, current = frontier.get()
+
+            if current == end_coor:
+                break
+
+            for next in self.find_neighbours(*current):
+                new_cost = current_cost + self._move_cost(current, next)
+                if next not in cost_so_far or new_cost < cost_so_far[next]:
+                    cost_so_far[next] = new_cost
+                    priority = new_cost
+                    frontier.put((priority, next))
+                    came_from[next] = current
+
+        current = end_coor
+        path = []
+        while current != start_coor:
+            path.append(current)
+            current = came_from[current]
+        path.append(start_coor)
+        path.reverse()
+        return path
+
+    def a_star_search(self, start_coor, end_coor):
+        frontier = PriorityQueue()
+        frontier.put((0, start_coor))
+        came_from = {}
+        cost_so_far = {}
+        came_from[start_coor] = None
+        cost_so_far[start_coor] = 0
+
+        while not frontier.empty():
+            current_cost, current = frontier.get()
+
+            if current == end_coor:
+                break
+
+            for next in self.find_neighbours(*current):
+                new_cost = cost_so_far[current] + self._move_cost(current, next)
+                if next not in cost_so_far or new_cost < cost_so_far[next]:
+                    cost_so_far[next] = new_cost
+                    priority = new_cost + self._heuristic(end_coor, next)
+                    frontier.put((priority, next))
+                    came_from[next] = current
+
+        current = end_coor
+        path = []
+        while current != start_coor:
+            path.append(current)
+            current = came_from[current]
+        path.append(start_coor)
+        path.reverse()
+        return path
+
+    def _move_cost(self, from_node, to_node):
+        if from_node[0] == to_node[0] or from_node[1] == to_node[1]:
+            return 0.9
+        else:
+            return 1.1
+
+    def _heuristic(self, a, b):
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
     def generate_maze(self, algorithm, start_coor = (0, 0)):
         """This takes the internal grid object and removes walls between cells using the

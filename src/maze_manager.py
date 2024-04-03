@@ -98,34 +98,30 @@ class MazeManager(object):
         """Gets the number of mazes that the manager is holding"""
         return self.mazes.__len__()
 
-    def solve_maze(self, maze_id, method, neighbor_method="fancy"):
-        """ Called to solve a maze by a particular method. The method
-        is specified by a string. The options are
-            1. DepthFirstBacktracker
-            2.
-            3.
-        Args:
-            maze_id (int): The id of the maze that will be solved
-            method (string): The name of the method (see above)
-            neighbor_method:
-
-        """
+    def solve_maze(self, maze_id, method, start_coor=(0, 0), end_coor=None, neighbor_method="fancy"):
         maze = self.get_maze(maze_id)
         if maze is None:
             print("Unable to locate maze. Exiting solver.")
             return None
 
-        """DEVNOTE: When adding a new solution method, call it from here.
-            Also update the list of names in the documentation above"""
+        if end_coor is None:
+            end_coor = maze.exit_coor
+
         if method == "DepthFirstBacktracker":
-            solver = DepthFirstBacktracker(maze, neighbor_method, self.quiet_mode)
+            solver = DepthFirstBacktracker(maze, self.quiet_mode, neighbor_method)
             maze.solution_path = solver.solve()
         elif method == "BiDirectional":
-            solver = BiDirectional(maze, neighbor_method, self.quiet_mode)
+            solver = BiDirectional(maze, self.quiet_mode, neighbor_method)
             maze.solution_path = solver.solve()
         elif method == "BreadthFirst":
-            solver = BreadthFirst(maze, neighbor_method, self.quiet_mode)
+            solver = BreadthFirst(maze, self.quiet_mode, neighbor_method)
             maze.solution_path = solver.solve()
+        elif method == "UniformCostSearch":
+            # Assume you have implemented this method in Maze class
+            maze.solution_path = maze.uniform_cost_search(start_coor, end_coor)
+        elif method == "AStarSearch":
+            # Assume you have implemented this method in Maze class
+            maze.solution_path = maze.a_star_search(start_coor, end_coor)
 
     def show_maze(self, id, cell_size=1):
         """Just show the generation animation and maze"""
